@@ -28,20 +28,19 @@ app.get('/', (_req, res) => {
 
 app.options('/games', (_req, res) => {
 	res.header('Access-Control-Allow-Methods', 'POST')
-	res.header('Access-Control-Allow-Headers', ['Content-Type', 'Authorization'])
+	res.header('Access-Control-Allow-Headers', 'Authorization')
 	res.send()
 })
 
 app.post('/games', bodyParser.json(), (req, res) => {
-	const name = req.body?.name
 	const leader = req.header('Authorization')
 	
-	if (!(name && leader)) {
-		res.sendStatus(400)
+	if (!leader) {
+		res.status(400).send('Invalid ID')
 		return
 	}
 	
-	res.send(new Game(name, leader).id)
+	res.send(new Game(leader).id)
 })
 
 io.on('connect', (socket: Socket) => {

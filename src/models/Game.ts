@@ -9,6 +9,7 @@ const games: Record<string, Game> = {}
 export interface GameData {
 	id: string
 	leader: string
+	started: boolean
 }
 
 export default class Game {
@@ -28,8 +29,8 @@ export default class Game {
 		games[id]
 	
 	get data(): GameData {
-		const { id, leader } = this
-		return { id, leader }
+		const { id, leader, started } = this
+		return { id, leader, started }
 	}
 	
 	get nextColor() {

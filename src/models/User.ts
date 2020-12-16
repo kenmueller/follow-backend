@@ -41,7 +41,7 @@ export default class User {
 		}
 		
 		socket.join(this.game.id)
-		this.emitData()
+		this.onJoin()
 		
 		if (!started)
 			this.game.addUser(this)
@@ -55,7 +55,12 @@ export default class User {
 		})
 		
 		socket.on('disconnect', () => {
-			this.game.removeUser(this)
+			const { socket, game, data: self } = this
+			
+			if (self)
+				socket.to(game.id).emit('leave', self)
+			
+			game.removeUser(this)
 		})
 	}
 	
@@ -71,10 +76,12 @@ export default class User {
 			: { id, color, score, location }
 	}
 	
-	private readonly emitData = () => {
-		this.socket.emit('data', {
-			game: this.game.data,
-			self: this.data
-		})
+	readonly onJoin = () => {
+		const { socket, game, data: self } = this
+		
+		if (self)
+			socket.to(game.id).emit('join', self)
+		
+		socket.emit('data', { game: game.data, self })
 	}
 }

@@ -41,9 +41,10 @@ export default class User {
 		}
 		
 		socket.join(this.game.id)
-		
 		this.emitData()
-		this.game.addUser(this)
+		
+		if (!started)
+			this.game.addUser(this)
 		
 		socket.on('start', () => {
 			if (!this.isLeader)
@@ -55,7 +56,6 @@ export default class User {
 		
 		socket.on('disconnect', () => {
 			this.game.removeUser(this)
-			socket.to(this.game.id).emit('users', this.game)
 		})
 	}
 	

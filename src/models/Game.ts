@@ -1,7 +1,7 @@
 import _ from 'lodash'
 import { nanoid } from 'nanoid'
 
-import User from './User'
+import User, { UserData } from './User'
 import ColorPicker from './ColorPicker'
 
 const games: Record<string, Game> = {}
@@ -36,14 +36,9 @@ export default class Game {
 		return this.colorPicker.next
 	}
 	
-	private get usersData() {
-		return this.users.map(({ data }) => data)
-	}
-	
 	readonly addUser = (user: User) => {
-		this.emitUsersTo(user)
 		this.users.push(user)
-		this.emitUsersFrom(user)
+		this.emitUsers()
 	}
 	
 	readonly removeUser = (user: User) => {
@@ -53,14 +48,21 @@ export default class Game {
 			return
 		
 		this.users.splice(index, 1)
-		this.emitUsersFrom(user)
+		this.emitUsers()
 	}
 	
-	readonly emitUsersFrom = (user: User) => {
-		user.socket.to(this.id).emit('users', this.usersData)
-	}
-	
-	readonly emitUsersTo = (user: User) => {
-		user.socket.emit('users', this.usersData)
+	readonly emitUsers = () => {
+		for (const user of this.users)
+			user.socket.emit(
+				'users',
+				this.users.reduce((users: UserData[], _user) => {
+					if (user.id !== _user.id) {
+						const { data } = _user
+						data && users.push(data)
+					}
+					
+					return users
+				}, [])
+			)
 	}
 }

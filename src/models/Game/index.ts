@@ -1,16 +1,12 @@
-import _ from 'lodash'
 import { nanoid } from 'nanoid'
 
-import User, { UserData } from './User'
-import ColorPicker from './ColorPicker'
+import GameState from './State'
+import GameData from './Data'
+import User from '../User'
+import UserData from '../User/Data'
+import ColorPicker from '../ColorPicker'
 
 const games: Record<string, Game> = {}
-
-export interface GameData {
-	id: string
-	leader: string
-	started: boolean
-}
 
 export default class Game {
 	static readonly DEFAULT_COLOR = ColorPicker.DEFAULT
@@ -19,7 +15,7 @@ export default class Game {
 	private users: User[] = []
 	
 	private readonly colorPicker: ColorPicker = new ColorPicker()
-	started: boolean = false
+	state: GameState = GameState.Waiting
 	
 	constructor(readonly leader: string) {
 		games[this.id] = this
@@ -29,8 +25,8 @@ export default class Game {
 		games[id]
 	
 	get data(): GameData {
-		const { id, leader, started } = this
-		return { id, leader, started }
+		const { id, leader, state } = this
+		return { id, leader, state }
 	}
 	
 	get nextColor() {

@@ -1,19 +1,10 @@
 import { Socket } from 'socket.io'
 
-import Game from './Game'
-import Coordinate, { getZeroCoordinate } from './Coordinate'
-
-interface Query {
-	id: string
-	game: string
-}
-
-export interface UserData {
-	id: string
-	color: string
-	score: number
-	location: Coordinate
-}
+import UserQuery from './Query'
+import UserData from './Data'
+import Game from '../Game'
+import GameState from '../Game/State'
+import Coordinate, { getZeroCoordinate } from '../Coordinate'
 
 export default class User {
 	readonly game: Game
@@ -24,16 +15,16 @@ export default class User {
 	location: Coordinate | null
 	
 	constructor(readonly socket: Socket) {
-		const { id, game } = socket.handshake.query as Query
+		const { id, game } = socket.handshake.query as UserQuery
 		
 		this.id = id
 		this.game = Game.get(game)
 		
-		const started = this.game?.started ?? true
+		const isSpectating = this.game?.state !== GameState.Waiting
 		
-		this.color = started ? null : this.game.nextColor ?? Game.DEFAULT_COLOR
-		this.score = started ? null : 0
-		this.location = started ? null : getZeroCoordinate()
+		this.color = isSpectating ? null : this.game.nextColor ?? Game.DEFAULT_COLOR
+		this.score = isSpectating ? null : 0
+		this.location = isSpectating ? null : getZeroCoordinate()
 		
 		if (!this.game) {
 			socket.emit('not-found')
@@ -43,14 +34,14 @@ export default class User {
 		socket.join(this.game.id)
 		this.onJoin()
 		
-		if (!started)
+		if (!isSpectating)
 			this.game.addUser(this)
 		
 		socket.on('start', () => {
-			if (!this.isLeader)
+			if (!(this.isLeader && this.game.state === GameState.Waiting))
 				return
 			
-			this.game.started = true
+			this.game.state = GameState.Starting
 			socket.to(this.game.id).emit('start')
 		})
 		

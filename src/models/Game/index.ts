@@ -65,16 +65,14 @@ export default class Game {
 		this.setState(GameState.Starting)
 		this.luckyCells = generateLuckyCells()
 		
-		for (const user of this.users)
-			if (user.data)
-				user.socket.emit('starting', this.luckyCells)
+		for (const { socket } of this.users)
+			socket.emit('starting', this.luckyCells)
 		
 		setTimeout(() => {
 			this.setState(GameState.Started)
 			
-			for (const user of this.users)
-				if (user.data)
-					user.socket.emit('started')
+			for (const { socket } of this.users)
+				socket.emit('started')
 		}, this.luckyCells.length * LUCKY_CELL_TIME)
 	}
 	

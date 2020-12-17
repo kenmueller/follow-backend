@@ -3,7 +3,5 @@ export default interface Coordinate {
 	y: number
 }
 
-export const getZeroCoordinate = (): Coordinate => ({
-	x: 0,
-	y: 0
-})
+export const getZeroCoordinate = (): Coordinate =>
+	({ x: 0, y: 0 })

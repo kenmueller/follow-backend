@@ -52,18 +52,22 @@ export default class Game {
 		this.emitUsers()
 	}
 	
-	readonly emitUsers = () => {
-		for (const user of this.users)
+	readonly emitUsers = (notUser?: User) => {
+		for (const user of this.users) {
+			if (user === notUser)
+				continue
+			
 			user.socket.emit(
 				'users',
-				this.users.reduce((users: UserData[], _user) => {
-					if (user.id !== _user.id) {
-						const { data } = _user
+				this.users.reduce((users: UserData[], otherUser) => {
+					if (user.id !== otherUser.id) {
+						const { data } = otherUser
 						data && users.push(data)
 					}
 					
 					return users
 				}, [])
 			)
+		}
 	}
 }

@@ -20,8 +20,8 @@ export default class User {
 	
 	readonly id: string
 	readonly color: string | null
-	readonly score: number | null
-	readonly location: Coordinate | null
+	score: number | null
+	location: Coordinate | null
 	
 	constructor(readonly socket: Socket) {
 		const { id, game } = socket.handshake.query as Query
@@ -52,6 +52,11 @@ export default class User {
 			
 			this.game.started = true
 			socket.to(this.game.id).emit('start')
+		})
+		
+		socket.on('location', (location: Coordinate) => {
+			this.location = location
+			this.game.emitUsers(this)
 		})
 		
 		socket.on('disconnect', () => {

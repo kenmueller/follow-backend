@@ -1,9 +1,9 @@
 import express from 'express'
 import { createServer } from 'http'
 import { Server, Socket } from 'socket.io'
-import bodyParser from 'body-parser'
 
 import Game from './models/Game'
+import * as GameListener from './models/Game/Listener'
 import User from './models/User'
 
 const PORT = process.env.PORT ?? 5000
@@ -32,7 +32,7 @@ app.options('/games', (_req, res) => {
 	res.send()
 })
 
-app.post('/games', bodyParser.json(), (req, res) => {
+app.post('/games', (req, res) => {
 	const leader = req.header('Authorization')
 	
 	if (!leader) {
@@ -43,7 +43,17 @@ app.post('/games', bodyParser.json(), (req, res) => {
 	res.send(new Game(leader).id)
 })
 
-io.on('connect', (socket: Socket) => {
+io.of('/games').on('connect', (socket: Socket) => {
+	GameListener.add(socket.id, games => {
+		socket.emit('games', games)
+	})
+	
+	socket.on('disconnect', () => {
+		GameListener.remove(socket.id)
+	})
+})
+
+io.of('/game').on('connect', (socket: Socket) => {
 	new User(socket)
 })
 

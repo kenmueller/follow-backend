@@ -2,11 +2,14 @@ import { nanoid } from 'nanoid'
 
 import GameState from './State'
 import GameData from './Data'
+import * as GameListener from './Listener'
+import generateLuckyCells, { LUCKY_CELL_TIME } from './generateLuckyCells'
 import User from '../User'
 import UserData from '../User/Data'
+import Coordinate from '../Coordinate'
 import ColorPicker from '../ColorPicker'
 
-const games: Record<string, Game> = {}
+export const games: Record<string, Game> = {}
 
 export default class Game {
 	static readonly DEFAULT_COLOR = ColorPicker.DEFAULT
@@ -15,10 +18,13 @@ export default class Game {
 	private users: User[] = []
 	
 	private readonly colorPicker: ColorPicker = new ColorPicker()
+	
 	state: GameState = GameState.Waiting
+	private luckyCells: Coordinate[] | null = null
 	
 	constructor(readonly leader: string) {
 		games[this.id] = this
+		GameListener.emit()
 	}
 	
 	static readonly get = (id: string) =>
@@ -31,6 +37,11 @@ export default class Game {
 	
 	get nextColor() {
 		return this.colorPicker.next
+	}
+	
+	private readonly setState = (state: GameState) => {
+		this.state = state
+		GameListener.emit()
 	}
 	
 	readonly addUser = (user: User) => {
@@ -48,6 +59,23 @@ export default class Game {
 		
 		this.users.splice(index, 1)
 		this.emitUsers()
+	}
+	
+	readonly start = () => {
+		this.setState(GameState.Starting)
+		this.luckyCells = generateLuckyCells()
+		
+		for (const user of this.users)
+			if (user.data)
+				user.socket.emit('starting', this.luckyCells)
+		
+		setTimeout(() => {
+			this.setState(GameState.Started)
+			
+			for (const user of this.users)
+				if (user.data)
+					user.socket.emit('started')
+		}, this.luckyCells.length * LUCKY_CELL_TIME)
 	}
 	
 	readonly emitUsers = (notUser?: User) => {

@@ -37,11 +37,8 @@ export default class User {
 		this.game.addUser(this)
 		
 		socket.on('start', () => {
-			if (!(this.isLeader && this.game.state === GameState.Waiting))
-				return
-			
-			this.game.state = GameState.Starting
-			socket.to(this.game.id).emit('start')
+			if (this.isLeader && this.game.state === GameState.Waiting)
+				this.game.start()
 		})
 		
 		socket.on('location', (location: Coordinate) => {

@@ -32,10 +32,9 @@ export default class User {
 		}
 		
 		socket.join(this.game.id)
-		this.onJoin()
 		
-		if (!isSpectating)
-			this.game.addUser(this)
+		this.onJoin()
+		this.game.addUser(this)
 		
 		socket.on('start', () => {
 			if (!(this.isLeader && this.game.state === GameState.Waiting))

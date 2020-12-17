@@ -1,6 +1,6 @@
 import Coordinate from '../Coordinate'
 
-export const LUCKY_CELL_TIME = 2000
+export const LUCKY_CELL_TIME = 1000
 
 const MIN_COUNT = 10
 const MAX_COUNT = 30

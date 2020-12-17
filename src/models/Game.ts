@@ -16,7 +16,7 @@ export default class Game {
 	static readonly DEFAULT_COLOR = ColorPicker.DEFAULT
 	
 	readonly id: string = nanoid(10)
-	private readonly users: User[] = []
+	private users: User[] = []
 	
 	private readonly colorPicker: ColorPicker = new ColorPicker()
 	started: boolean = false
@@ -38,7 +38,9 @@ export default class Game {
 	}
 	
 	readonly addUser = (user: User) => {
-		this.users.push(user)
+		this.users = [...this.users, user]
+			.sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+		
 		this.emitUsers()
 	}
 	
